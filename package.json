@@ -6,7 +6,7 @@
     "@supabase/supabase-js": "^2.39.3"
   },
   "scripts": {
-    "dev": "cd frontend/just-built-frontend && npm run start",
-    "build": "cd frontend/just-built-frontend && npm run build"
+    "dev": "cd just_built_ide_production/frontend/just-built-frontend && npm run start",
+    "build": "cd just_built_ide_production/frontend/just-built-frontend && npm run build"
   }
 }
