@@ -1,0 +1,12 @@
+[build]
+  command = "cd frontend/just-built-frontend && npm install && npm run build"
+  publish = "frontend/just-built-frontend/build"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions]
+  node_bundler = "esbuild"
