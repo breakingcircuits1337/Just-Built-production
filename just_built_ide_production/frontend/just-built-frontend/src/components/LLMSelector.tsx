@@ -37,17 +37,11 @@ const LLMSelector: React.FC<LLMSelectorProps> = ({ onModelSelect }) => {
   const toast = useToast();
 
   useEffect(() => {
-    // In a real implementation, this would fetch from the backend API
     const fetchModels = async () => {
       try {
-        // Mock data for now - would be replaced with actual API call
-        const mockModels: LLMModel[] = [
-          { id: 'gemini', name: 'Google Gemini', available: true },
-          { id: 'mistral', name: 'Mistral AI', available: true },
-          { id: 'groq', name: 'Groq', available: true },
-          { id: 'ollama', name: 'Ollama (Local)', available: true, endpoint: '127.0.0.1:9632' }
-        ];
-        setModels(mockModels);
+        const response = await fetch('/.netlify/functions/llm/models');
+        const data = await response.json();
+        setModels(data.models);
       } catch (error) {
         console.error('Failed to fetch LLM models:', error);
         toast({

@@ -28,7 +28,9 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
-  Input
+  Input,
+  FormControl,
+  FormLabel
 } from '@chakra-ui/react';
 import { FiPlay, FiEdit, FiPlus, FiTrash2, FiCheck, FiX, FiArrowRight } from 'react-icons/fi';
 import Editor from '@monaco-editor/react';
@@ -102,13 +104,12 @@ function App() {
 
   const handleFileSelect = (file: FileItem) => {
     setSelectedFile(file);
-    // In a real implementation, this would load the file content
     if (file.type === 'file') {
       setCode(`// Content of ${file.name}\n// This would be the actual file content in a real implementation`);
     }
   };
 
-  const generatePlan = () => {
+  const generatePlan = async () => {
     if (!userInput.trim()) {
       toast({
         title: 'Input required',
@@ -122,43 +123,20 @@ function App() {
 
     setIsGeneratingPlan(true);
     
-    // Simulate API call to generate plan
-    setTimeout(() => {
-      const generatedSteps: Step[] = [
-        { 
-          id: 1, 
-          title: 'Setup project structure', 
-          description: 'Create basic folder structure and initialize project files', 
-          completed: false 
+    try {
+      const response = await fetch('/.netlify/functions/llm/generate-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        { 
-          id: 2, 
-          title: 'Create HTML layout', 
-          description: 'Implement the basic HTML structure for the application', 
-          completed: false 
-        },
-        { 
-          id: 3, 
-          title: 'Add CSS styling', 
-          description: 'Style the application with CSS to match design requirements', 
-          completed: false 
-        },
-        { 
-          id: 4, 
-          title: 'Implement core functionality', 
-          description: 'Add JavaScript code for the main application features', 
-          completed: false 
-        },
-        { 
-          id: 5, 
-          title: 'Test and debug', 
-          description: 'Test the application and fix any issues', 
-          completed: false 
-        }
-      ];
-      
-      setSteps(generatedSteps);
-      setIsGeneratingPlan(false);
+        body: JSON.stringify({
+          input: userInput,
+          model: selectedModels[0]
+        })
+      });
+
+      const data = await response.json();
+      setSteps(data.plan);
       
       toast({
         title: 'Plan Generated',
@@ -167,218 +145,66 @@ function App() {
         duration: 3000,
         isClosable: true,
       });
-    }, 2000);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to generate plan. Please try again.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsGeneratingPlan(false);
+    }
   };
 
-  const executeStep = (stepId: number) => {
+  const executeStep = async (stepId: number) => {
     setCurrentStep(stepId);
     
-    // Simulate API call to execute step
-    setTimeout(() => {
-      const stepIndex = steps.findIndex(step => step.id === stepId);
-      if (stepIndex !== -1) {
-        const updatedSteps = [...steps];
-        updatedSteps[stepIndex].completed = true;
-        
-        // Generate mock code based on step
-        let generatedCode = '';
-        switch (stepId) {
-          case 1:
-            generatedCode = `// Setting up project structure
-mkdir -p src/assets src/components src/styles
-touch src/index.html src/styles/main.css src/app.js
-npm init -y
-git init`;
-            break;
-          case 2:
-            generatedCode = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Application</title>
-  <link rel="stylesheet" href="styles/main.css">
-</head>
-<body>
-  <header>
-    <h1>My Application</h1>
-    <nav>
-      <ul>
-        <li><a href="#">Home</a></li>
-        <li><a href="#">About</a></li>
-        <li><a href="#">Contact</a></li>
-      </ul>
-    </nav>
-  </header>
-  
-  <main id="app">
-    <!-- Application content will be loaded here -->
-  </main>
-  
-  <footer>
-    <p>&copy; 2025 My Application</p>
-  </footer>
-  
-  <script src="app.js"></script>
-</body>
-</html>`;
-            break;
-          case 3:
-            generatedCode = `/* Main CSS Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+    try {
+      const response = await fetch('/.netlify/functions/llm/execute-step', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          step_id: stepId,
+          plan_id: 'current'
+        })
+      });
 
-body {
-  font-family: 'Arial', sans-serif;
-  line-height: 1.6;
-  color: #333;
-  background-color: #f4f4f4;
-}
-
-header {
-  background-color: #35424a;
-  color: white;
-  padding: 1rem;
-}
-
-header h1 {
-  display: inline-block;
-  margin-right: 2rem;
-}
-
-nav ul {
-  display: flex;
-  list-style: none;
-}
-
-nav ul li {
-  margin-right: 1rem;
-}
-
-nav ul li a {
-  color: white;
-  text-decoration: none;
-}
-
-main {
-  padding: 2rem;
-  min-height: 70vh;
-}
-
-footer {
-  background-color: #35424a;
-  color: white;
-  text-align: center;
-  padding: 1rem;
-}`;
-            break;
-          case 4:
-            generatedCode = `// Main Application Code
-document.addEventListener('DOMContentLoaded', () => {
-  initializeApp();
-});
-
-function initializeApp() {
-  const app = document.getElementById('app');
-  
-  // Create main content
-  const content = document.createElement('div');
-  content.className = 'content';
-  
-  const heading = document.createElement('h2');
-  heading.textContent = 'Welcome to My Application';
-  
-  const description = document.createElement('p');
-  description.textContent = 'This is a sample application built with Just Built IDE.';
-  
-  const button = document.createElement('button');
-  button.textContent = 'Click Me';
-  button.addEventListener('click', () => {
-    alert('Button clicked!');
-  });
-  
-  // Append elements
-  content.appendChild(heading);
-  content.appendChild(description);
-  content.appendChild(button);
-  app.appendChild(content);
-  
-  console.log('Application initialized successfully');
-}`;
-            break;
-          case 5:
-            generatedCode = `// Testing and Debugging
-function runTests() {
-  console.log('Running tests...');
-  
-  // Test 1: Check if app element exists
-  const appTest = () => {
-    const app = document.getElementById('app');
-    if (!app) {
-      console.error('Test failed: App element not found');
-      return false;
-    }
-    console.log('Test passed: App element found');
-    return true;
-  };
-  
-  // Test 2: Check if button works
-  const buttonTest = () => {
-    const button = document.querySelector('button');
-    if (!button) {
-      console.error('Test failed: Button not found');
-      return false;
-    }
-    console.log('Test passed: Button found');
-    
-    // Simulate click
-    let clicked = false;
-    const originalAlert = window.alert;
-    window.alert = () => { clicked = true; };
-    
-    button.click();
-    
-    window.alert = originalAlert;
-    
-    if (!clicked) {
-      console.error('Test failed: Button click not working');
-      return false;
-    }
-    console.log('Test passed: Button click working');
-    return true;
-  };
-  
-  // Run all tests
-  const tests = [appTest, buttonTest];
-  const results = tests.map(test => test());
-  
-  const passed = results.filter(result => result).length;
-  console.log(\`Tests completed: \${passed}/\${tests.length} passed\`);
-}
-
-// Run tests
-runTests();`;
-            break;
-          default:
-            generatedCode = '// No code generated for this step';
+      const data = await response.json();
+      
+      if (data.success) {
+        const stepIndex = steps.findIndex(step => step.id === stepId);
+        if (stepIndex !== -1) {
+          const updatedSteps = [...steps];
+          updatedSteps[stepIndex] = {
+            ...updatedSteps[stepIndex],
+            completed: true,
+            code: data.code
+          };
+          setSteps(updatedSteps);
+          setCode(data.code);
+          
+          toast({
+            title: 'Step Executed',
+            description: `Step ${stepId}: ${updatedSteps[stepIndex].title} completed`,
+            status: 'success',
+            duration: 3000,
+            isClosable: true,
+          });
         }
-        
-        updatedSteps[stepIndex].code = generatedCode;
-        setSteps(updatedSteps);
-        setCode(generatedCode);
-        
-        toast({
-          title: 'Step Executed',
-          description: `Step ${stepId}: ${updatedSteps[stepIndex].title} completed`,
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
       }
-    }, 1500);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to execute step. Please try again.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const executeAllSteps = () => {
@@ -513,7 +339,6 @@ runTests();`;
       </Box>
 
       <PanelGroup direction="horizontal" style={{ flex: 1 }}>
-        {/* Left Panel - File Explorer */}
         <Panel defaultSize={20} minSize={15}>
           <Box height="100%" p={2}>
             <FileManager onFileSelect={handleFileSelect} />
@@ -522,7 +347,6 @@ runTests();`;
 
         <PanelResizeHandle style={{ width: '4px', background: '#E2E8F0' }} />
 
-        {/* Center Panel - Code Editor */}
         <Panel defaultSize={50} minSize={30}>
           <Box height="100%" display="flex" flexDirection="column">
             <Box p={2} bg="gray.100">
@@ -549,7 +373,6 @@ runTests();`;
 
         <PanelResizeHandle style={{ width: '4px', background: '#E2E8F0' }} />
 
-        {/* Right Panel - Plan and Controls */}
         <Panel defaultSize={30} minSize={20}>
           <Box height="100%" p={2}>
             <Tabs variant="enclosed" height="100%" display="flex" flexDirection="column">
@@ -561,7 +384,6 @@ runTests();`;
               </TabList>
 
               <TabPanels flex="1" overflowY="auto">
-                {/* Project Plan Tab */}
                 <TabPanel>
                   <VStack spacing={4} align="stretch">
                     <Box>
@@ -664,12 +486,10 @@ runTests();`;
                   </VStack>
                 </TabPanel>
 
-                {/* LLM Config Tab */}
                 <TabPanel>
                   <LLMSelector onModelSelect={handleModelSelect} />
                 </TabPanel>
 
-                {/* Agents Tab */}
                 <TabPanel>
                   <AgentBuilder 
                     onAgentCreate={handleAgentCreate} 
@@ -700,7 +520,6 @@ runTests();`;
                   )}
                 </TabPanel>
 
-                {/* Build Tab */}
                 <TabPanel>
                   <BuildDeploy onBuildStart={() => {}} />
                 </TabPanel>
@@ -710,7 +529,6 @@ runTests();`;
         </Panel>
       </PanelGroup>
 
-      {/* Edit Step Modal */}
       <Modal isOpen={isEditStepOpen} onClose={onEditStepClose}>
         <ModalOverlay />
         <ModalContent>

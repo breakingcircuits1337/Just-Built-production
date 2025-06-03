@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Box, 
   Heading, 
@@ -57,6 +57,20 @@ const BuildDeploy: React.FC<BuildDeployProps> = ({ onBuildStart }) => {
     { id: 'hybrid', name: 'Hybrid Build', description: 'Build for both local and web environments' }
   ];
 
+  useEffect(() => {
+    const fetchBuildOptions = async () => {
+      try {
+        const response = await fetch('/.netlify/functions/build/options');
+        const data = await response.json();
+        // Handle build options data
+      } catch (error) {
+        console.error('Failed to fetch build options:', error);
+      }
+    };
+
+    fetchBuildOptions();
+  }, []);
+
   const handlePlatformChange = (platform: string) => {
     if (platforms.includes(platform)) {
       setPlatforms(platforms.filter(p => p !== platform));
@@ -65,55 +79,41 @@ const BuildDeploy: React.FC<BuildDeployProps> = ({ onBuildStart }) => {
     }
   };
 
-  const startBuild = () => {
-    // Validate build configuration
-    if (buildType === 'local' && platforms.length === 0) {
+  const startBuild = async () => {
+    try {
+      const response = await fetch('/.netlify/functions/build/start', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: buildType,
+          platform: platforms,
+          optimization: optimization,
+          includeSourceMaps: includeSourceMaps,
+          additionalOptions: additionalOptions
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        toast({
+          title: 'Build Started',
+          description: `Build process started for ${buildType}`,
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
       toast({
-        title: 'Platform required',
-        description: 'Please select at least one platform for local build',
+        title: 'Build Failed',
+        description: 'Failed to start build process. Please try again.',
         status: 'error',
         duration: 3000,
         isClosable: true,
       });
-      return;
     }
-
-    const buildConfig: BuildConfig = {
-      type: buildType,
-      platform: buildType !== 'web' ? platforms : undefined,
-      optimization,
-      includeSourceMaps,
-      additionalOptions
-    };
-
-    // Start mock build process
-    setIsBuilding(true);
-    setBuildProgress(0);
-
-    // Simulate build progress
-    const interval = setInterval(() => {
-      setBuildProgress(prev => {
-        const newProgress = prev + 10;
-        if (newProgress >= 100) {
-          clearInterval(interval);
-          setIsBuilding(false);
-          
-          toast({
-            title: 'Build Complete',
-            description: `${buildType} build completed successfully`,
-            status: 'success',
-            duration: 5000,
-            isClosable: true,
-          });
-          
-          // Notify parent component
-          onBuildStart(buildConfig);
-          
-          return 100;
-        }
-        return newProgress;
-      });
-    }, 800);
   };
 
   return (
@@ -141,7 +141,7 @@ const BuildDeploy: React.FC<BuildDeployProps> = ({ onBuildStart }) => {
         
         {(buildType === 'local' || buildType === 'hybrid') && (
           <Box>
-            <Text fontWeight="medium" mb={2}>Target Platforms</Text>
+            <Text fontWeight="medium\" mb={2}>Target Platforms</Text>
             <Stack spacing={2}>
               <Checkbox 
                 isChecked={platforms.includes('windows')} 

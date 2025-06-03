@@ -50,32 +50,11 @@ const FileManager: React.FC<FileManagerProps> = ({ onFileSelect }) => {
   const toast = useToast();
 
   useEffect(() => {
-    // In a real implementation, this would fetch from the backend API
     const fetchFiles = async () => {
       try {
-        // Mock data for now - would be replaced with actual API call
-        const mockFiles: FileItem[] = [
-          {
-            name: 'src',
-            type: 'directory',
-            path: '/project/src',
-            children: [
-              { name: 'index.html', type: 'file', path: '/project/src/index.html', size: 1024 },
-              { name: 'styles.css', type: 'file', path: '/project/src/styles.css', size: 512 },
-              { name: 'app.js', type: 'file', path: '/project/src/app.js', size: 2048 }
-            ]
-          },
-          {
-            name: 'assets',
-            type: 'directory',
-            path: '/project/assets',
-            children: [
-              { name: 'logo.png', type: 'file', path: '/project/assets/logo.png', size: 4096 }
-            ]
-          },
-          { name: 'README.md', type: 'file', path: '/project/README.md', size: 256 }
-        ];
-        setFiles(mockFiles);
+        const response = await fetch('/.netlify/functions/files/list');
+        const data = await response.json();
+        setFiles(data);
       } catch (error) {
         console.error('Failed to fetch files:', error);
       }
@@ -103,17 +82,37 @@ const FileManager: React.FC<FileManagerProps> = ({ onFileSelect }) => {
     }
   };
 
-  const handleUpload = (e: React.FormEvent) => {
+  const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real implementation, this would upload files to the backend
-    toast({
-      title: 'Upload successful',
-      description: 'Files have been uploaded to the project',
-      status: 'success',
-      duration: 3000,
-      isClosable: true,
-    });
-    onUploadClose();
+    try {
+      const response = await fetch('/.netlify/functions/files/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ /* file data */ })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        toast({
+          title: 'Upload successful',
+          description: 'Files have been uploaded to the project',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+        onUploadClose();
+      }
+    } catch (error) {
+      toast({
+        title: 'Upload failed',
+        description: 'Failed to upload files. Please try again.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const handleGithubConnect = (e: React.FormEvent) => {
