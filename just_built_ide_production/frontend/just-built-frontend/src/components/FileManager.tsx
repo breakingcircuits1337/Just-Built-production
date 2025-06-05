@@ -26,7 +26,7 @@ import {
   InputRightElement,
   useToast
 } from '@chakra-ui/react';
-import { FiFolder, FiFile, FiUpload, FiDownload, FiGithub, FiPlus, FiTrash2, FiEdit, FiChevronRight, FiChevronDown } from 'react-icons/fi';
+import { FiFolder, FiFile, FiUpload, FiDownload, FiGithub, FiPlus, FiEdit, FiChevronRight, FiChevronDown } from 'react-icons/fi';
 
 interface FileItem {
   name: string;
@@ -66,6 +66,7 @@ const FileManager: React.FC<FileManagerProps> = ({ onFileSelect }) => {
   const toggleFolder = (path: string) => {
     const newExpandedFolders = new Set(expandedFolders);
     if (newExpandedFolders.has(path)) {
+      
       newExpandedFolders.delete(path);
     } else {
       newExpandedFolders.add(path);

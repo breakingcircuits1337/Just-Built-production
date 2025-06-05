@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Box, 
   Heading, 
@@ -13,7 +13,6 @@ import {
   FormControl,
   FormLabel,
   Select,
-  Input,
   Textarea,
   Divider,
   Badge,
@@ -47,29 +46,13 @@ const BuildDeploy: React.FC<BuildDeployProps> = ({ onBuildStart }) => {
   const [optimization, setOptimization] = useState<string>('standard');
   const [includeSourceMaps, setIncludeSourceMaps] = useState<boolean>(true);
   const [additionalOptions, setAdditionalOptions] = useState<string>('');
-  const [isBuilding, setIsBuilding] = useState<boolean>(false);
-  const [buildProgress, setBuildProgress] = useState<number>(0);
   const toast = useToast();
 
   const buildOptions: BuildOption[] = [
-    { id: 'local', name: 'Local Build', description: 'Build for desktop or mobile applications' },
-    { id: 'web', name: 'Web Deployment', description: 'Build for web servers and cloud hosting' },
-    { id: 'hybrid', name: 'Hybrid Build', description: 'Build for both local and web environments' }
+    { id: 'local', name: 'Local Build', description: 'Build for local use' },
+    { id: 'web', name: 'Web Deployment', description: 'Build for web deployment' },
+    { id: 'hybrid', name: 'Hybrid Build', description: 'Build for both local and web use' }
   ];
-
-  useEffect(() => {
-    const fetchBuildOptions = async () => {
-      try {
-        const response = await fetch('/.netlify/functions/build/options');
-        const data = await response.json();
-        // Handle build options data
-      } catch (error) {
-        console.error('Failed to fetch build options:', error);
-      }
-    };
-
-    fetchBuildOptions();
-  }, []);
 
   const handlePlatformChange = (platform: string) => {
     if (platforms.includes(platform)) {
@@ -232,28 +215,14 @@ const BuildDeploy: React.FC<BuildDeployProps> = ({ onBuildStart }) => {
             {includeSourceMaps && <Badge colorScheme="gray">Source Maps</Badge>}
           </HStack>
           
-          {isBuilding ? (
-            <Box>
-              <Text mb={2}>Building... {buildProgress}%</Text>
-              <Progress value={buildProgress} size="sm" colorScheme="teal" borderRadius="md" />
-            </Box>
-          ) : (
-            <Button 
-              colorScheme="teal" 
-              onClick={startBuild}
-              isDisabled={buildType === 'local' && platforms.length === 0}
-            >
-              Start Build
-            </Button>
-          )}
+          <Button 
+            colorScheme="teal" 
+            onClick={startBuild}
+            isDisabled={buildType === 'local' && platforms.length === 0}
+          >
+            Start Build
+          </Button>
         </Box>
-        
-        {buildProgress === 100 && (
-          <Alert status="success" borderRadius="md">
-            <AlertIcon />
-            Build completed successfully! Your application is ready for deployment.
-          </Alert>
-        )}
       </VStack>
     </Box>
   );
