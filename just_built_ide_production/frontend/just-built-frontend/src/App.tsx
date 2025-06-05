@@ -32,7 +32,7 @@ import {
   FormControl,
   FormLabel
 } from '@chakra-ui/react';
-import { FiPlay, FiEdit, FiPlus, FiTrash2, FiCheck, FiX, FiArrowRight } from 'react-icons/fi';
+import { FiPlay, FiEdit, FiPlus, FiTrash2, FiCheck, FiArrowRight } from 'react-icons/fi';
 import Editor from '@monaco-editor/react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
@@ -71,7 +71,6 @@ function App() {
   const [selectedModels, setSelectedModels] = useState<string[]>(['gemini']);
   const [isCybersecurityMode, setIsCybersecurityMode] = useState<boolean>(false);
   const [steps, setSteps] = useState<Step[]>([]);
-  const [currentStep, setCurrentStep] = useState<number | null>(null);
   const [code, setCode] = useState<string>('// Code will appear here as steps are executed');
   const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
@@ -158,9 +157,7 @@ function App() {
     }
   };
 
-  const executeStep = async (stepId: number) => {
-    setCurrentStep(stepId);
-    
+  const executeStep = async (stepId: number) => {    
     try {
       const response = await fetch('/.netlify/functions/llm/execute-step', {
         method: 'POST',
