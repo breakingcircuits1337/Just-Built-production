@@ -40,6 +40,7 @@ import LLMSelector from './components/LLMSelector';
 import AgentBuilder from './components/AgentBuilder';
 import FileManager from './components/FileManager';
 import BuildDeploy from './components/BuildDeploy';
+import { llmApi } from './services/api';
 
 interface Step {
   id: number;
@@ -123,19 +124,8 @@ function App() {
     setIsGeneratingPlan(true);
     
     try {
-      const response = await fetch('/.netlify/functions/llm/generate-plan', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          input: userInput,
-          model: selectedModels[0]
-        })
-      });
-
-      const data = await response.json();
-      setSteps(data.plan);
+      const response = await llmApi.generatePlan(userInput, selectedModels[0]);
+      setSteps(response.data.plan);
       
       toast({
         title: 'Plan Generated',
@@ -159,18 +149,8 @@ function App() {
 
   const executeStep = async (stepId: number) => {    
     try {
-      const response = await fetch('/.netlify/functions/llm/execute-step', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          step_id: stepId,
-          plan_id: 'current'
-        })
-      });
-
-      const data = await response.json();
+      const response = await llmApi.executeStep(stepId, 'current');
+      const data = response.data;
       
       if (data.success) {
         const stepIndex = steps.findIndex(step => step.id === stepId);

@@ -17,6 +17,7 @@ import {
   Button,
   useToast
 } from '@chakra-ui/react';
+import { llmApi } from '../services/api';
 
 interface LLMModel {
   id: string;
@@ -39,9 +40,8 @@ const LLMSelector: React.FC<LLMSelectorProps> = ({ onModelSelect }) => {
   useEffect(() => {
     const fetchModels = async () => {
       try {
-        const response = await fetch('/.netlify/functions/llm/models');
-        const data = await response.json();
-        setModels(data.models);
+        const response = await llmApi.getModels();
+        setModels(response.data.models);
       } catch (error) {
         console.error('Failed to fetch LLM models:', error);
         toast({

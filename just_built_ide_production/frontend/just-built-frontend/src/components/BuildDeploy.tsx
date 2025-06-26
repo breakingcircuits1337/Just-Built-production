@@ -21,6 +21,7 @@ import {
   Alert,
   AlertIcon
 } from '@chakra-ui/react';
+import { buildApi } from '../services/api';
 
 interface BuildOption {
   id: string;
@@ -64,22 +65,15 @@ const BuildDeploy: React.FC<BuildDeployProps> = ({ onBuildStart }) => {
 
   const startBuild = async () => {
     try {
-      const response = await fetch('/.netlify/functions/build/start', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: buildType,
-          platform: platforms,
-          optimization: optimization,
-          includeSourceMaps: includeSourceMaps,
-          additionalOptions: additionalOptions
-        })
+      const response = await buildApi.startBuild({
+        type: buildType,
+        platform: platforms,
+        optimization: optimization,
+        includeSourceMaps: includeSourceMaps,
+        additionalOptions: additionalOptions
       });
 
-      const data = await response.json();
-      if (data.success) {
+      if (response.data.success) {
         toast({
           title: 'Build Started',
           description: `Build process started for ${buildType}`,
@@ -124,7 +118,7 @@ const BuildDeploy: React.FC<BuildDeployProps> = ({ onBuildStart }) => {
         
         {(buildType === 'local' || buildType === 'hybrid') && (
           <Box>
-            <Text fontWeight="medium\" mb={2}>Target Platforms</Text>
+            <Text fontWeight="medium" mb={2}>Target Platforms</Text>
             <Stack spacing={2}>
               <Checkbox 
                 isChecked={platforms.includes('windows')} 

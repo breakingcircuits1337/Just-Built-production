@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/.netlify/functions',
+  baseURL: process.env.NODE_ENV === 'development' 
+    ? 'http://localhost:5000/api' 
+    : '/.netlify/functions',
   headers: {
     'Content-Type': 'application/json',
   },

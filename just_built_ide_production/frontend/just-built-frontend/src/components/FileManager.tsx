@@ -27,6 +27,7 @@ import {
   useToast
 } from '@chakra-ui/react';
 import { FiFolder, FiFile, FiUpload, FiDownload, FiGithub, FiPlus, FiEdit, FiChevronRight, FiChevronDown } from 'react-icons/fi';
+import { filesApi, githubApi } from '../services/api';
 
 interface FileItem {
   name: string;
@@ -52,9 +53,8 @@ const FileManager: React.FC<FileManagerProps> = ({ onFileSelect }) => {
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        const response = await fetch('/.netlify/functions/files/list');
-        const data = await response.json();
-        setFiles(data);
+        const response = await filesApi.listFiles();
+        setFiles(response.data);
       } catch (error) {
         console.error('Failed to fetch files:', error);
       }
@@ -86,16 +86,9 @@ const FileManager: React.FC<FileManagerProps> = ({ onFileSelect }) => {
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/.netlify/functions/files/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ /* file data */ })
-      });
+      const response = await filesApi.saveFile({ /* file data */ });
       
-      const data = await response.json();
-      if (data.success) {
+      if (response.data.success) {
         toast({
           title: 'Upload successful',
           description: 'Files have been uploaded to the project',
