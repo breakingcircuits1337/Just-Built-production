@@ -27,10 +27,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "cd just_built_ide_production/frontend/just-built-frontend && react-scripts start",
+    "build": "cd just_built_ide_production/frontend/just-built-frontend && react-scripts build",
+    "test": "cd just_built_ide_production/frontend/just-built-frontend && react-scripts test",
+    "eject": "cd just_built_ide_production/frontend/just-built-frontend && react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
