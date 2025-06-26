@@ -26,8 +26,8 @@ import {
   InputRightElement,
   useToast
 } from '@chakra-ui/react';
-import { FiFolder, FiFile, FiUpload, FiDownload, FiGithub, FiPlus, FiEdit, FiChevronRight, FiChevronDown } from 'react-icons/fi';
-import { filesApi, githubApi } from '../services/api';
+import { FiFolder, FiFile, FiUpload, FiDownload, FiGithub, FiPlus, FiChevronRight, FiChevronDown } from 'react-icons/fi';
+import { filesApi } from '../services/api';
 
 interface FileItem {
   name: string;

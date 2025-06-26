@@ -10,8 +10,6 @@ import {
   Switch, 
   Text, 
   Checkbox, 
-  CheckboxGroup, 
-  VStack,
   Badge,
   Divider,
   Button,
