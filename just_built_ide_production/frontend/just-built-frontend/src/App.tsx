@@ -264,7 +264,16 @@ function App() {
   };
 
   const saveNewStep = () => {
-    if (!editingStep) return;
+    if (!editingStep || !newStepTitle.trim() || !newStepDescription.trim()) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please fill in both title and description',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
     
     const newStep = {
       ...editingStep,
@@ -295,6 +304,23 @@ function App() {
       duration: 3000,
       isClosable: true,
     });
+  };
+
+  const handleModalSave = () => {
+    if (editingStep && editingStep.title) {
+      // This is editing an existing step
+      saveEditedStep();
+    } else {
+      // This is adding a new step
+      saveNewStep();
+    }
+  };
+
+  const handleModalCancel = () => {
+    setEditingStep(null);
+    setNewStepTitle('');
+    setNewStepDescription('');
+    onEditStepClose();
   };
 
   return (
@@ -506,7 +532,7 @@ function App() {
         </Panel>
       </PanelGroup>
 
-      <Modal isOpen={isEditStepOpen} onClose={onEditStepClose}>
+      <Modal isOpen={isEditStepOpen} onClose={handleModalCancel}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
@@ -535,12 +561,12 @@ function App() {
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onEditStepClose}>
+            <Button variant="ghost" mr={3} onClick={handleModalCancel}>
               Cancel
             </Button>
             <Button 
               colorScheme="blue" 
-              onClick={editingStep && editingStep.title ? saveEditedStep : saveNewStep}
+              onClick={handleModalSave}
             >
               Save
             </Button>
