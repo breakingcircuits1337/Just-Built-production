@@ -38,7 +38,7 @@ import {
   AlertIcon,
   AlertDescription
 } from '@chakra-ui/react';
-import { FiPlay, FiEdit, FiPlus, FiTrash2, FiCheck, FiArrowRight, FiSettings, FiCode, FiEye, FiHome } from 'react-icons/fi';
+import { FiPlay, FiEdit, FiPlus, FiTrash2, FiCheck, FiArrowRight, FiSettings, FiCode, FiEye, FiHome, FiMessageSquare, FiGrid } from 'react-icons/fi';
 import Editor from '@monaco-editor/react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
@@ -49,6 +49,9 @@ import BuildDeploy from './components/BuildDeploy';
 import ProjectDashboard from './components/ProjectDashboard';
 import CodePreview from './components/CodePreview';
 import AdvancedSettings from './components/AdvancedSettings';
+import TemplateGallery from './components/TemplateGallery';
+import AIAssistant from './components/AIAssistant';
+import ProjectSettings from './components/ProjectSettings';
 import { llmApi } from './services/api';
 
 interface Step {
@@ -99,6 +102,7 @@ interface Project {
   lastModified: Date;
   collaborators: number;
   linesOfCode: number;
+  framework?: string;
 }
 
 function App() {
@@ -116,10 +120,13 @@ function App() {
   const [currentLanguage, setCurrentLanguage] = useState<string>('javascript');
   const [currentFramework, setCurrentFramework] = useState<string>('');
   const [showPreview, setShowPreview] = useState<boolean>(false);
+  const [showAIAssistant, setShowAIAssistant] = useState<boolean>(false);
+  const [showTemplateGallery, setShowTemplateGallery] = useState<boolean>(false);
   const [advancedSettings, setAdvancedSettings] = useState<any>({});
   
   const { isOpen: isEditStepOpen, onOpen: onEditStepOpen, onClose: onEditStepClose } = useDisclosure();
   const { isOpen: isSettingsOpen, onOpen: onSettingsOpen, onClose: onSettingsClose } = useDisclosure();
+  const { isOpen: isProjectSettingsOpen, onOpen: onProjectSettingsOpen, onClose: onProjectSettingsClose } = useDisclosure();
   
   const [editingStep, setEditingStep] = useState<Step | null>(null);
   const [newStepTitle, setNewStepTitle] = useState<string>('');
@@ -138,19 +145,19 @@ function App() {
     switch (project.type) {
       case 'web-app':
         setCurrentLanguage('typescript');
-        setCurrentFramework('react');
+        setCurrentFramework(project.framework || 'react');
         break;
       case 'mobile-app':
         setCurrentLanguage('typescript');
-        setCurrentFramework('react-native');
+        setCurrentFramework(project.framework || 'react-native');
         break;
       case 'api':
         setCurrentLanguage('typescript');
-        setCurrentFramework('express');
+        setCurrentFramework(project.framework || 'express');
         break;
       default:
         setCurrentLanguage('javascript');
-        setCurrentFramework('');
+        setCurrentFramework(project.framework || '');
     }
     
     toast({
@@ -168,6 +175,32 @@ function App() {
     setUserInput('');
     setSteps([]);
     setCode('// New project started\n// Describe what you want to build and click "Generate Plan"');
+  };
+
+  const handleTemplateSelect = (template: any) => {
+    const newProject: Project = {
+      id: Date.now().toString(),
+      name: template.name,
+      description: template.description,
+      type: template.category,
+      framework: template.framework,
+      status: 'active',
+      progress: 0,
+      lastModified: new Date(),
+      collaborators: 1,
+      linesOfCode: 0
+    };
+
+    setCurrentProject(newProject);
+    setCurrentView('ide');
+    setUserInput(template.description);
+    setCurrentFramework(template.framework);
+    setShowTemplateGallery(false);
+
+    // Auto-generate plan for template
+    setTimeout(() => {
+      generatePlan();
+    }, 500);
   };
 
   const handleModelSelect = (models: string[], config?: any) => {
@@ -518,6 +551,21 @@ function App() {
           onProjectSelect={handleProjectSelect}
           onNewProject={handleNewProject}
         />
+        
+        {/* Template Gallery Modal */}
+        {showTemplateGallery && (
+          <Modal isOpen={showTemplateGallery} onClose={() => setShowTemplateGallery(false)} size="full">
+            <ModalOverlay />
+            <ModalContent>
+              <ModalBody p={0}>
+                <TemplateGallery
+                  onTemplateSelect={handleTemplateSelect}
+                  onClose={() => setShowTemplateGallery(false)}
+                />
+              </ModalBody>
+            </ModalContent>
+          </Modal>
+        )}
       </Box>
     );
   }
@@ -564,12 +612,30 @@ function App() {
                 colorScheme="whiteAlpha"
               />
               <Text fontSize="sm">Preview</Text>
+              
               <IconButton
-                aria-label="Settings"
+                aria-label="AI Assistant"
+                icon={<FiMessageSquare />}
+                variant="ghost"
+                color="white"
+                onClick={() => setShowAIAssistant(!showAIAssistant)}
+                bg={showAIAssistant ? 'whiteAlpha.200' : 'transparent'}
+              />
+              
+              <IconButton
+                aria-label="Templates"
+                icon={<FiGrid />}
+                variant="ghost"
+                color="white"
+                onClick={() => setShowTemplateGallery(true)}
+              />
+              
+              <IconButton
+                aria-label="Project Settings"
                 icon={<FiSettings />}
                 variant="ghost"
                 color="white"
-                onClick={onSettingsOpen}
+                onClick={onProjectSettingsOpen}
               />
             </HStack>
           </HStack>
@@ -585,7 +651,7 @@ function App() {
 
         <PanelResizeHandle style={{ width: '4px', background: '#E2E8F0' }} />
 
-        <Panel defaultSize={showPreview ? 35 : 50} minSize={30}>
+        <Panel defaultSize={showPreview ? (showAIAssistant ? 30 : 35) : (showAIAssistant ? 40 : 50)} minSize={25}>
           <Box height="100%" display="flex" flexDirection="column">
             <Box p={2} bg="gray.100" borderBottom="1px" borderColor="gray.200">
               <Flex justify="space-between" align="center">
@@ -632,11 +698,38 @@ function App() {
         {showPreview && (
           <>
             <PanelResizeHandle style={{ width: '4px', background: '#E2E8F0' }} />
-            <Panel defaultSize={25} minSize={20}>
+            <Panel defaultSize={showAIAssistant ? 25 : 30} minSize={20}>
               <CodePreview
                 code={code}
                 language={currentLanguage}
                 framework={currentFramework}
+              />
+            </Panel>
+          </>
+        )}
+
+        {showAIAssistant && (
+          <>
+            <PanelResizeHandle style={{ width: '4px', background: '#E2E8F0' }} />
+            <Panel defaultSize={25} minSize={20}>
+              <AIAssistant
+                onCodeGenerate={(generatedCode) => setCode(generatedCode)}
+                onStepSuggest={(suggestedSteps) => {
+                  const newSteps = suggestedSteps.map((step, index) => ({
+                    id: steps.length + index + 1,
+                    title: step.title,
+                    description: step.description,
+                    completed: false,
+                    status: 'pending' as const,
+                    estimatedTime: step.estimatedTime
+                  }));
+                  setSteps([...steps, ...newSteps]);
+                }}
+                currentContext={{
+                  project: currentProject?.name,
+                  code: code,
+                  language: currentLanguage
+                }}
               />
             </Panel>
           </>
@@ -687,6 +780,14 @@ function App() {
                             Auto Run
                           </Button>
                         )}
+                        <Button
+                          size="sm"
+                          leftIcon={<FiGrid />}
+                          onClick={() => setShowTemplateGallery(true)}
+                          variant="outline"
+                        >
+                          Templates
+                        </Button>
                       </HStack>
                     </Box>
 
@@ -898,6 +999,39 @@ function App() {
           <ModalFooter>
             <Button onClick={onSettingsClose}>Close</Button>
           </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Project Settings Modal */}
+      <Modal isOpen={isProjectSettingsOpen} onClose={onProjectSettingsClose} size="6xl">
+        <ModalOverlay />
+        <ModalContent maxH="90vh">
+          <ModalHeader>Project Settings</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody p={0}>
+            <ProjectSettings
+              project={currentProject}
+              onSettingsChange={(settings) => {
+                if (currentProject) {
+                  setCurrentProject({ ...currentProject, ...settings.general });
+                }
+              }}
+              onClose={onProjectSettingsClose}
+            />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* Template Gallery Modal */}
+      <Modal isOpen={showTemplateGallery} onClose={() => setShowTemplateGallery(false)} size="full">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalBody p={0}>
+            <TemplateGallery
+              onTemplateSelect={handleTemplateSelect}
+              onClose={() => setShowTemplateGallery(false)}
+            />
+          </ModalBody>
         </ModalContent>
       </Modal>
     </Box>
