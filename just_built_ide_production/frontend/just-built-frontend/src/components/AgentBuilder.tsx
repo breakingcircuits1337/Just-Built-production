@@ -16,7 +16,13 @@ import {
   Alert,
   AlertIcon,
   AlertDescription,
-  Divider
+  Divider,
+  Switch,
+  Slider,
+  SliderTrack,
+  SliderFilledTrack,
+  SliderThumb,
+  SliderMark
 } from '@chakra-ui/react';
 
 interface AgentConfig {
@@ -26,6 +32,14 @@ interface AgentConfig {
   purpose: string;
   securityLevel: string;
   customInstructions: string;
+  expertise: string[];
+  codingStyle: string;
+  communicationStyle: {
+    verbosity: number;
+    formality: number;
+    useEmojis: boolean;
+    technicalLevel: number;
+  };
 }
 
 interface AgentBuilderProps {
@@ -40,7 +54,15 @@ const AgentBuilder: React.FC<AgentBuilderProps> = ({ onAgentCreate, isCybersecur
     model: 'gemini',
     purpose: 'general',
     securityLevel: 'standard',
-    customInstructions: ''
+    customInstructions: '',
+    expertise: [],
+    codingStyle: 'clean-readable',
+    communicationStyle: {
+      verbosity: 5,
+      formality: 5,
+      useEmojis: false,
+      technicalLevel: 5
+    }
   });
   
   const toast = useToast();
@@ -50,6 +72,28 @@ const AgentBuilder: React.FC<AgentBuilderProps> = ({ onAgentCreate, isCybersecur
     setAgentConfig({
       ...agentConfig,
       [name]: value
+    });
+  };
+
+  const handleCommunicationStyleChange = (field: string, value: number | boolean) => {
+    setAgentConfig({
+      ...agentConfig,
+      communicationStyle: {
+        ...agentConfig.communicationStyle,
+        [field]: value
+      }
+    });
+  };
+
+  const handleExpertiseToggle = (expertise: string) => {
+    const currentExpertise = agentConfig.expertise;
+    const newExpertise = currentExpertise.includes(expertise)
+      ? currentExpertise.filter(e => e !== expertise)
+      : [...currentExpertise, expertise];
+    
+    setAgentConfig({
+      ...agentConfig,
+      expertise: newExpertise
     });
   };
 
@@ -86,14 +130,43 @@ const AgentBuilder: React.FC<AgentBuilderProps> = ({ onAgentCreate, isCybersecur
       model: 'gemini',
       purpose: 'general',
       securityLevel: 'standard',
-      customInstructions: ''
+      customInstructions: '',
+      expertise: [],
+      codingStyle: 'clean-readable',
+      communicationStyle: {
+        verbosity: 5,
+        formality: 5,
+        useEmojis: false,
+        technicalLevel: 5
+      }
     });
   };
+
+  const expertiseOptions = [
+    'Frontend Development',
+    'Backend Development',
+    'Full Stack',
+    'DevOps',
+    'Security',
+    'Mobile Development',
+    'Data Science',
+    'Machine Learning',
+    'UI/UX Design',
+    'Testing & QA'
+  ];
+
+  const codingStyles = [
+    { value: 'clean-readable', label: 'Clean & Readable' },
+    { value: 'concise', label: 'Concise' },
+    { value: 'functional', label: 'Functional' },
+    { value: 'object-oriented', label: 'Object-Oriented' },
+    { value: 'performance-focused', label: 'Performance-Focused' }
+  ];
 
   return (
     <Box p={4} borderWidth="1px" borderRadius="lg" bg="gray.50" width="100%">
       <VStack spacing={4} align="stretch">
-        <Heading size="md">Custom Agent Builder</Heading>
+        <Heading size="md">AI Agent Builder</Heading>
         
         {isCybersecurityMode && (
           <Alert status="info" borderRadius="md">
@@ -106,15 +179,31 @@ const AgentBuilder: React.FC<AgentBuilderProps> = ({ onAgentCreate, isCybersecur
         
         <form onSubmit={handleSubmit}>
           <VStack spacing={4} align="stretch">
-            <FormControl isRequired>
-              <FormLabel>Agent Name</FormLabel>
-              <Input 
-                name="name"
-                value={agentConfig.name}
-                onChange={handleInputChange}
-                placeholder="Enter a name for your agent"
-              />
-            </FormControl>
+            <HStack spacing={4}>
+              <FormControl isRequired>
+                <FormLabel>Agent Name</FormLabel>
+                <Input 
+                  name="name"
+                  value={agentConfig.name}
+                  onChange={handleInputChange}
+                  placeholder="Enter a name for your agent"
+                />
+              </FormControl>
+              
+              <FormControl isRequired>
+                <FormLabel>Base Model</FormLabel>
+                <Select 
+                  name="model"
+                  value={agentConfig.model}
+                  onChange={handleInputChange}
+                >
+                  <option value="gemini">Google Gemini</option>
+                  <option value="gpt-4">OpenAI GPT-4</option>
+                  <option value="claude">Anthropic Claude</option>
+                  <option value="ollama">Ollama (Local)</option>
+                </Select>
+              </FormControl>
+            </HStack>
             
             <FormControl>
               <FormLabel>Description</FormLabel>
@@ -129,20 +218,6 @@ const AgentBuilder: React.FC<AgentBuilderProps> = ({ onAgentCreate, isCybersecur
             
             <HStack spacing={4}>
               <FormControl isRequired>
-                <FormLabel>Base Model</FormLabel>
-                <Select 
-                  name="model"
-                  value={agentConfig.model}
-                  onChange={handleInputChange}
-                >
-                  <option value="gemini">Google Gemini</option>
-                  <option value="mistral">Mistral AI</option>
-                  <option value="groq">Groq</option>
-                  <option value="ollama">Ollama (Local)</option>
-                </Select>
-              </FormControl>
-              
-              <FormControl isRequired>
                 <FormLabel>Primary Purpose</FormLabel>
                 <Select 
                   name="purpose"
@@ -153,6 +228,7 @@ const AgentBuilder: React.FC<AgentBuilderProps> = ({ onAgentCreate, isCybersecur
                   <option value="frontend">Frontend Specialist</option>
                   <option value="backend">Backend Specialist</option>
                   <option value="fullstack">Full Stack Development</option>
+                  <option value="devops">DevOps Engineer</option>
                   {isCybersecurityMode && (
                     <>
                       <option value="security-audit">Security Auditing</option>
@@ -160,6 +236,21 @@ const AgentBuilder: React.FC<AgentBuilderProps> = ({ onAgentCreate, isCybersecur
                       <option value="defensive-coding">Defensive Coding Practices</option>
                     </>
                   )}
+                </Select>
+              </FormControl>
+              
+              <FormControl>
+                <FormLabel>Coding Style</FormLabel>
+                <Select 
+                  name="codingStyle"
+                  value={agentConfig.codingStyle}
+                  onChange={handleInputChange}
+                >
+                  {codingStyles.map(style => (
+                    <option key={style.value} value={style.value}>
+                      {style.label}
+                    </option>
+                  ))}
                 </Select>
               </FormControl>
             </HStack>
@@ -180,6 +271,98 @@ const AgentBuilder: React.FC<AgentBuilderProps> = ({ onAgentCreate, isCybersecur
             )}
             
             <FormControl>
+              <FormLabel>Areas of Expertise</FormLabel>
+              <Box>
+                <Text fontSize="sm" color="gray.600" mb={2}>
+                  Select areas where this agent should have specialized knowledge:
+                </Text>
+                <VStack align="stretch" spacing={2}>
+                  {expertiseOptions.map(expertise => (
+                    <HStack key={expertise} justify="space-between">
+                      <Text>{expertise}</Text>
+                      <Switch
+                        isChecked={agentConfig.expertise.includes(expertise)}
+                        onChange={() => handleExpertiseToggle(expertise)}
+                        colorScheme="teal"
+                      />
+                    </HStack>
+                  ))}
+                </VStack>
+              </Box>
+            </FormControl>
+            
+            <Divider />
+            
+            <Box>
+              <Text fontWeight="medium" mb={4}>Communication Style</Text>
+              
+              <VStack spacing={4} align="stretch">
+                <FormControl>
+                  <FormLabel>Verbosity Level: {agentConfig.communicationStyle.verbosity}</FormLabel>
+                  <Slider
+                    value={agentConfig.communicationStyle.verbosity}
+                    onChange={(value) => handleCommunicationStyleChange('verbosity', value)}
+                    min={1}
+                    max={10}
+                    step={1}
+                  >
+                    <SliderMark value={1} mt="2" ml="-2" fontSize="sm">Concise</SliderMark>
+                    <SliderMark value={10} mt="2" ml="-4" fontSize="sm">Detailed</SliderMark>
+                    <SliderTrack>
+                      <SliderFilledTrack />
+                    </SliderTrack>
+                    <SliderThumb />
+                  </Slider>
+                </FormControl>
+                
+                <FormControl>
+                  <FormLabel>Formality Level: {agentConfig.communicationStyle.formality}</FormLabel>
+                  <Slider
+                    value={agentConfig.communicationStyle.formality}
+                    onChange={(value) => handleCommunicationStyleChange('formality', value)}
+                    min={1}
+                    max={10}
+                    step={1}
+                  >
+                    <SliderMark value={1} mt="2" ml="-2" fontSize="sm">Casual</SliderMark>
+                    <SliderMark value={10} mt="2" ml="-2" fontSize="sm">Formal</SliderMark>
+                    <SliderTrack>
+                      <SliderFilledTrack />
+                    </SliderTrack>
+                    <SliderThumb />
+                  </Slider>
+                </FormControl>
+                
+                <FormControl>
+                  <FormLabel>Technical Level: {agentConfig.communicationStyle.technicalLevel}</FormLabel>
+                  <Slider
+                    value={agentConfig.communicationStyle.technicalLevel}
+                    onChange={(value) => handleCommunicationStyleChange('technicalLevel', value)}
+                    min={1}
+                    max={10}
+                    step={1}
+                  >
+                    <SliderMark value={1} mt="2" ml="-2" fontSize="sm">Beginner</SliderMark>
+                    <SliderMark value={10} mt="2" ml="-2" fontSize="sm">Expert</SliderMark>
+                    <SliderTrack>
+                      <SliderFilledTrack />
+                    </SliderTrack>
+                    <SliderThumb />
+                  </Slider>
+                </FormControl>
+                
+                <HStack justify="space-between">
+                  <Text>Use Emojis</Text>
+                  <Switch
+                    isChecked={agentConfig.communicationStyle.useEmojis}
+                    onChange={(e) => handleCommunicationStyleChange('useEmojis', e.target.checked)}
+                    colorScheme="teal"
+                  />
+                </HStack>
+              </VStack>
+            </Box>
+            
+            <FormControl>
               <FormLabel>Custom Instructions</FormLabel>
               <Textarea 
                 name="customInstructions"
@@ -197,11 +380,14 @@ const AgentBuilder: React.FC<AgentBuilderProps> = ({ onAgentCreate, isCybersecur
               <HStack wrap="wrap" spacing={2}>
                 <Badge colorScheme="purple">{agentConfig.model}</Badge>
                 <Badge colorScheme="blue">{agentConfig.purpose}</Badge>
+                {agentConfig.expertise.map(exp => (
+                  <Badge key={exp} colorScheme="green">{exp}</Badge>
+                ))}
                 {isCybersecurityMode && (
-                  <Badge colorScheme="green">Ethical Security Focus</Badge>
+                  <Badge colorScheme="orange">Ethical Security Focus</Badge>
                 )}
                 {agentConfig.securityLevel !== 'standard' && (
-                  <Badge colorScheme="orange">{agentConfig.securityLevel} Security</Badge>
+                  <Badge colorScheme="red">{agentConfig.securityLevel} Security</Badge>
                 )}
               </HStack>
             </Box>
