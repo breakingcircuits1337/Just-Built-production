@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 // API service for Just Built IDE
 export interface ApiResponse<T = any> {
   data: T;
@@ -70,8 +72,63 @@ export interface AgentConfig {
   };
 }
 
+const api = axios.create({
+  baseURL: process.env.NODE_ENV === 'development' 
+    ? 'http://localhost:5000/api' 
+    : '/.netlify/functions',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 // Enhanced mock API implementations with more realistic behavior
 export const llmApi = {
+  async getModels(): Promise<ApiResponse<{ models: LLMModel[] }>> {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const mockModels: LLMModel[] = [
+      {
+        id: 'gemini',
+        name: 'Google Gemini Pro',
+        available: true,
+        description: 'Google\'s advanced multimodal AI model with strong reasoning capabilities',
+        capabilities: ['Code Generation', 'Multimodal', 'Reasoning', 'Analysis'],
+        pricing: 'Pay per use'
+      },
+      {
+        id: 'gpt-4',
+        name: 'OpenAI GPT-4',
+        available: true,
+        description: 'OpenAI\'s most capable model with excellent code generation and reasoning',
+        capabilities: ['Code Generation', 'Problem Solving', 'Documentation', 'Debugging'],
+        pricing: 'Premium'
+      },
+      {
+        id: 'claude',
+        name: 'Anthropic Claude',
+        available: true,
+        description: 'Anthropic\'s helpful, harmless, and honest AI assistant',
+        capabilities: ['Code Review', 'Explanation', 'Safety', 'Reasoning'],
+        pricing: 'Pay per use'
+      },
+      {
+        id: 'ollama',
+        name: 'Ollama Local',
+        available: true,
+        endpoint: 'http://localhost:11434',
+        description: 'Run open-source models locally for privacy and control',
+        capabilities: ['Privacy', 'Local Processing', 'Customizable', 'Offline'],
+        pricing: 'Free (Local)'
+      }
+    ];
+
+    return {
+      data: { models: mockModels },
+      success: true
+    };
+  },
+
   async generatePlan(userInput: string, model: string, config?: LLMConfig): Promise<ApiResponse<{ plan: PlanStep[] }>> {
     // Simulate API delay based on input complexity
     const delay = Math.min(3000, userInput.length * 10 + 1000);
@@ -181,6 +238,71 @@ export const llmApi = {
           completed: false,
           estimatedTime: "15 minutes",
           dependencies: [4],
+          status: 'pending'
+        }
+      ];
+    } else if (keywords.includes('mobile') || keywords.includes('app')) {
+      mockPlan = [
+        {
+          id: 1,
+          title: "Mobile App Setup",
+          description: "Initialize React Native or Flutter project and configure dependencies",
+          completed: false,
+          estimatedTime: "15 minutes",
+          status: 'pending'
+        },
+        {
+          id: 2,
+          title: "Navigation Structure",
+          description: "Set up navigation system and screen architecture",
+          completed: false,
+          estimatedTime: "20 minutes",
+          dependencies: [1],
+          status: 'pending'
+        },
+        {
+          id: 3,
+          title: "UI Components & Styling",
+          description: "Create mobile-optimized UI components with responsive layouts",
+          completed: false,
+          estimatedTime: "30 minutes",
+          dependencies: [2],
+          status: 'pending'
+        },
+        {
+          id: 4,
+          title: "State Management",
+          description: "Implement state management solution for app data",
+          completed: false,
+          estimatedTime: "25 minutes",
+          dependencies: [2],
+          status: 'pending'
+        },
+        {
+          id: 5,
+          title: "API Integration",
+          description: "Connect to backend services and handle data fetching",
+          completed: false,
+          estimatedTime: "20 minutes",
+          dependencies: [3, 4],
+          status: 'pending'
+        },
+        {
+          id: 6,
+          title: "Device Features",
+          description: "Implement native device features like camera, location, notifications",
+          completed: false,
+          estimatedTime: "25 minutes",
+          dependencies: [5],
+          status: 'pending'
+        },
+        {
+          id: 7,
+          title: "Testing & Optimization",
+          description: "Test on multiple devices and optimize performance",
+          completed: false,
+          estimatedTime: "20 minutes",
+          dependencies: [6],
           status: 'pending'
         }
       ];
@@ -553,6 +675,66 @@ module.exports = {
   ],
 };`,
         explanation: "Configured Docker for containerized deployment, set up production build optimization, and implemented compression for better performance."
+      },
+      7: {
+        code: `// Mobile App Navigation
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
+
+import HomeScreen from './screens/HomeScreen';
+import ProfileScreen from './screens/ProfileScreen';
+import SettingsScreen from './screens/SettingsScreen';
+import DetailScreen from './screens/DetailScreen';
+
+const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+function HomeStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Detail" component={DetailScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function App() {
+  return (
+    <NavigationContainer>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+
+            if (route.name === 'HomeTab') {
+              iconName = focused ? 'home' : 'home-outline';
+            } else if (route.name === 'Profile') {
+              iconName = focused ? 'person' : 'person-outline';
+            } else if (route.name === 'Settings') {
+              iconName = focused ? 'settings' : 'settings-outline';
+            }
+
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+        })}
+      >
+        <Tab.Screen 
+          name="HomeTab" 
+          component={HomeStack} 
+          options={{ headerShown: false, title: 'Home' }}
+        />
+        <Tab.Screen name="Profile" component={ProfileScreen} />
+        <Tab.Screen name="Settings" component={SettingsScreen} />
+      </Tab.Navigator>
+    </NavigationContainer>
+  );
+}
+
+export default App;`,
+        explanation: "Implemented a comprehensive navigation structure for a mobile app with tab navigation and nested stack navigation for detailed views."
       }
     };
 
@@ -586,52 +768,6 @@ console.log(result);`,
     };
   },
 
-  async getModels(): Promise<ApiResponse<{ models: LLMModel[] }>> {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const mockModels: LLMModel[] = [
-      {
-        id: 'gemini',
-        name: 'Google Gemini Pro',
-        available: true,
-        description: 'Google\'s advanced multimodal AI model with strong reasoning capabilities',
-        capabilities: ['Code Generation', 'Multimodal', 'Reasoning', 'Analysis'],
-        pricing: 'Pay per use'
-      },
-      {
-        id: 'gpt-4',
-        name: 'OpenAI GPT-4',
-        available: true,
-        description: 'OpenAI\'s most capable model with excellent code generation and reasoning',
-        capabilities: ['Code Generation', 'Problem Solving', 'Documentation', 'Debugging'],
-        pricing: 'Premium'
-      },
-      {
-        id: 'claude',
-        name: 'Anthropic Claude',
-        available: true,
-        description: 'Anthropic\'s helpful, harmless, and honest AI assistant',
-        capabilities: ['Code Review', 'Explanation', 'Safety', 'Reasoning'],
-        pricing: 'Pay per use'
-      },
-      {
-        id: 'ollama',
-        name: 'Ollama Local',
-        available: true,
-        endpoint: 'http://localhost:11434',
-        description: 'Run open-source models locally for privacy and control',
-        capabilities: ['Privacy', 'Local Processing', 'Customizable', 'Offline'],
-        pricing: 'Free (Local)'
-      }
-    ];
-
-    return {
-      data: { models: mockModels },
-      success: true
-    };
-  },
-
   async saveAgent(agent: AgentConfig): Promise<ApiResponse<{ agentId: string }>> {
     await new Promise(resolve => setTimeout(resolve, 500));
     
@@ -644,6 +780,19 @@ console.log(result);`,
 };
 
 export const buildApi = {
+  async getOptions(): Promise<ApiResponse<any[]>> {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    return {
+      data: [
+        { id: "local", name: "Local Build", description: "Build for local use" },
+        { id: "web", name: "Web Deployment", description: "Build for web deployment" },
+        { id: "hybrid", name: "Hybrid Build", description: "Build for both local and web use" }
+      ],
+      success: true
+    };
+  },
+
   async startBuild(config: BuildConfig): Promise<ApiResponse<{ buildId: string; status: string }>> {
     // Simulate build process with progress updates
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -784,7 +933,7 @@ export const filesApi = {
     
     if (!fileData.name) {
       return {
-        data: null,
+        data: null as any,
         success: false,
         message: 'File name is required'
       };
@@ -843,13 +992,25 @@ export default Component;`;
 };
 
 export const githubApi = {
+  async listRepos(): Promise<ApiResponse<any[]>> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    return {
+      data: [
+        { name: "my-project", url: "https://github.com/user/my-project", stars: 5 },
+        { name: "another-project", url: "https://github.com/user/another-project", stars: 10 }
+      ],
+      success: true
+    };
+  },
+
   async connectRepo(repoUrl: string): Promise<ApiResponse<{ repoId: string }>> {
     // Simulate GitHub connection with validation
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     if (!repoUrl.includes('github.com') && !repoUrl.includes('/')) {
       return {
-        data: null,
+        data: null as any,
         success: false,
         message: 'Invalid repository URL format'
       };
@@ -893,6 +1054,94 @@ export const githubApi = {
   }
 };
 
+export const collaborationApi = {
+  async getCollaborators(projectId: string): Promise<ApiResponse<any[]>> {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    return {
+      data: [
+        {
+          id: 'user-1',
+          name: 'Alice Johnson',
+          email: 'alice@example.com',
+          role: 'owner',
+          status: 'online'
+        },
+        {
+          id: 'user-2',
+          name: 'Bob Smith',
+          email: 'bob@example.com',
+          role: 'editor',
+          status: 'online'
+        },
+        {
+          id: 'user-3',
+          name: 'Carol Davis',
+          email: 'carol@example.com',
+          role: 'viewer',
+          status: 'offline'
+        }
+      ],
+      success: true
+    };
+  },
+
+  async inviteUser(projectId: string, email: string, role: string): Promise<ApiResponse> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    return {
+      data: null,
+      success: true,
+      message: `Invitation sent to ${email} for role ${role}`
+    };
+  },
+
+  async addComment(projectId: string, comment: any): Promise<ApiResponse<{ commentId: string }>> {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    return {
+      data: { commentId: 'comment_' + Date.now() },
+      success: true,
+      message: 'Comment added successfully'
+    };
+  }
+};
+
+export const securityApi = {
+  async scanCode(code: string, language: string): Promise<ApiResponse<any>> {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Simulate security scan results
+    const issues = [];
+    
+    if (code.includes('eval(')) {
+      issues.push({
+        severity: 'critical',
+        type: 'vulnerability',
+        title: 'Code Injection Risk',
+        description: 'Use of eval() can lead to code injection attacks'
+      });
+    }
+    
+    if (code.includes('http://')) {
+      issues.push({
+        severity: 'medium',
+        type: 'best-practice',
+        title: 'Insecure HTTP Protocol',
+        description: 'Using HTTP instead of HTTPS for external requests'
+      });
+    }
+    
+    return {
+      data: {
+        score: issues.length > 0 ? 100 - (issues.length * 10) : 100,
+        issues: issues
+      },
+      success: true
+    };
+  }
+};
+
 // Utility functions for API error handling
 export const handleApiError = (error: any): string => {
   if (error.response?.data?.message) {
@@ -907,3 +1156,5 @@ export const handleApiError = (error: any): string => {
 export const isApiError = (response: ApiResponse): boolean => {
   return !response.success;
 };
+
+export default api;

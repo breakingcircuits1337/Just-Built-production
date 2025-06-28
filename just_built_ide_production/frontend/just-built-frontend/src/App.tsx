@@ -38,7 +38,7 @@ import {
   AlertIcon,
   AlertDescription
 } from '@chakra-ui/react';
-import { FiPlay, FiEdit, FiPlus, FiTrash2, FiCheck, FiArrowRight, FiSettings, FiCode, FiEye, FiHome, FiMessageSquare, FiGrid } from 'react-icons/fi';
+import { FiPlay, FiEdit, FiPlus, FiTrash2, FiCheck, FiArrowRight, FiSettings, FiCode, FiEye, FiHome, FiMessageSquare, FiGrid, FiShield, FiUsers, FiClock, FiGitBranch, FiImage } from 'react-icons/fi';
 import Editor from '@monaco-editor/react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
@@ -52,6 +52,11 @@ import AdvancedSettings from './components/AdvancedSettings';
 import TemplateGallery from './components/TemplateGallery';
 import AIAssistant from './components/AIAssistant';
 import ProjectSettings from './components/ProjectSettings';
+import VisualCodeEditor from './components/VisualCodeEditor';
+import TimelineViewer from './components/TimelineViewer';
+import KnowledgeGraph from './components/KnowledgeGraph';
+import CollaborationHub from './components/CollaborationHub';
+import SecurityScanner from './components/SecurityScanner';
 import { llmApi } from './services/api';
 
 interface Step {
@@ -122,6 +127,11 @@ function App() {
   const [showPreview, setShowPreview] = useState<boolean>(false);
   const [showAIAssistant, setShowAIAssistant] = useState<boolean>(false);
   const [showTemplateGallery, setShowTemplateGallery] = useState<boolean>(false);
+  const [showVisualEditor, setShowVisualEditor] = useState<boolean>(false);
+  const [showTimeline, setShowTimeline] = useState<boolean>(false);
+  const [showKnowledgeGraph, setShowKnowledgeGraph] = useState<boolean>(false);
+  const [showCollaboration, setShowCollaboration] = useState<boolean>(false);
+  const [showSecurityScanner, setShowSecurityScanner] = useState<boolean>(false);
   const [advancedSettings, setAdvancedSettings] = useState<any>({});
   
   const { isOpen: isEditStepOpen, onOpen: onEditStepOpen, onClose: onEditStepClose } = useDisclosure();
@@ -544,6 +554,45 @@ function App() {
     return steps.filter(step => step.completed).length;
   };
 
+  const handleVisualCodeGenerate = (generatedCode: string, framework: string) => {
+    setCode(generatedCode);
+    setCurrentFramework(framework);
+    setShowVisualEditor(false);
+    
+    toast({
+      title: 'Code Generated',
+      description: `Generated ${framework} code from visual design`,
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
+  const handleTimelineCodeRestore = (restoredCode: string) => {
+    setCode(restoredCode);
+    setShowTimeline(false);
+    
+    toast({
+      title: 'Code Restored',
+      description: 'Code has been restored from timeline',
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
+  const handleKnowledgeRecommendation = (recommendations: any[]) => {
+    if (recommendations.length > 0) {
+      toast({
+        title: 'Knowledge Recommendations',
+        description: `${recommendations.length} recommendations available`,
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   if (currentView === 'dashboard') {
     return (
       <Box height="100vh" bg="gray.50">
@@ -640,6 +689,67 @@ function App() {
             </HStack>
           </HStack>
         </Flex>
+      </Box>
+
+      {/* Advanced Features Toolbar */}
+      <Box bg="gray.100" p={2} borderBottom="1px" borderColor="gray.200">
+        <HStack spacing={2} justify="center">
+          <Tooltip label="Visual Code Editor">
+            <Button 
+              size="sm" 
+              leftIcon={<FiImage />} 
+              variant={showVisualEditor ? "solid" : "outline"}
+              colorScheme={showVisualEditor ? "teal" : "gray"}
+              onClick={() => setShowVisualEditor(!showVisualEditor)}
+            >
+              Visual Editor
+            </Button>
+          </Tooltip>
+          <Tooltip label="Time-Travel Development">
+            <Button 
+              size="sm" 
+              leftIcon={<FiClock />} 
+              variant={showTimeline ? "solid" : "outline"}
+              colorScheme={showTimeline ? "teal" : "gray"}
+              onClick={() => setShowTimeline(!showTimeline)}
+            >
+              Timeline
+            </Button>
+          </Tooltip>
+          <Tooltip label="Knowledge Graph">
+            <Button 
+              size="sm" 
+              leftIcon={<FiGitBranch />} 
+              variant={showKnowledgeGraph ? "solid" : "outline"}
+              colorScheme={showKnowledgeGraph ? "teal" : "gray"}
+              onClick={() => setShowKnowledgeGraph(!showKnowledgeGraph)}
+            >
+              Knowledge Graph
+            </Button>
+          </Tooltip>
+          <Tooltip label="Collaboration">
+            <Button 
+              size="sm" 
+              leftIcon={<FiUsers />} 
+              variant={showCollaboration ? "solid" : "outline"}
+              colorScheme={showCollaboration ? "teal" : "gray"}
+              onClick={() => setShowCollaboration(!showCollaboration)}
+            >
+              Collaboration
+            </Button>
+          </Tooltip>
+          <Tooltip label="Security Scanner">
+            <Button 
+              size="sm" 
+              leftIcon={<FiShield />} 
+              variant={showSecurityScanner ? "solid" : "outline"}
+              colorScheme={showSecurityScanner ? "teal" : "gray"}
+              onClick={() => setShowSecurityScanner(!showSecurityScanner)}
+            >
+              Security
+            </Button>
+          </Tooltip>
+        </HStack>
       </Box>
 
       <PanelGroup direction="horizontal" style={{ flex: 1 }}>
@@ -1030,6 +1140,80 @@ function App() {
             <TemplateGallery
               onTemplateSelect={handleTemplateSelect}
               onClose={() => setShowTemplateGallery(false)}
+            />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* Visual Code Editor Modal */}
+      <Modal isOpen={showVisualEditor} onClose={() => setShowVisualEditor(false)} size="full">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalBody p={0}>
+            <VisualCodeEditor
+              onCodeGenerate={handleVisualCodeGenerate}
+              onClose={() => setShowVisualEditor(false)}
+            />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* Timeline Viewer Modal */}
+      <Modal isOpen={showTimeline} onClose={() => setShowTimeline(false)} size="full">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalBody p={0}>
+            <TimelineViewer
+              projectId={currentProject?.id || 'default'}
+              onCodeRestore={handleTimelineCodeRestore}
+              onClose={() => setShowTimeline(false)}
+            />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* Knowledge Graph Modal */}
+      <Modal isOpen={showKnowledgeGraph} onClose={() => setShowKnowledgeGraph(false)} size="full">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalBody p={0}>
+            <KnowledgeGraph
+              onRecommendation={handleKnowledgeRecommendation}
+              onClose={() => setShowKnowledgeGraph(false)}
+              currentContext={{
+                code,
+                language: currentLanguage,
+                framework: currentFramework
+              }}
+            />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* Collaboration Hub Modal */}
+      <Modal isOpen={showCollaboration} onClose={() => setShowCollaboration(false)} size="full">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalBody p={0}>
+            <CollaborationHub
+              projectId={currentProject?.id || 'default'}
+              currentUserId="user-1"
+              onClose={() => setShowCollaboration(false)}
+            />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* Security Scanner Modal */}
+      <Modal isOpen={showSecurityScanner} onClose={() => setShowSecurityScanner(false)} size="full">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalBody p={0}>
+            <SecurityScanner
+              code={code}
+              language={currentLanguage}
+              framework={currentFramework}
+              onClose={() => setShowSecurityScanner(false)}
             />
           </ModalBody>
         </ModalContent>
