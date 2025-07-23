@@ -4,7 +4,6 @@ import {
   VStack,
   HStack,
   Text,
-  Input,
   Button,
   Avatar,
   Flex,
@@ -15,10 +14,8 @@ import {
   useToast,
   Textarea,
   Select,
-  Switch,
   FormControl,
   FormLabel,
-  Divider
 } from '@chakra-ui/react';
 import { FiSend, FiMic, FiMicOff, FiRefreshCw, FiSettings, FiMessageSquare, FiCode, FiHelpCircle } from 'react-icons/fi';
 
@@ -63,7 +60,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
   const [isListening, setIsListening] = useState(false);
   const [selectedModel, setSelectedModel] = useState('gemini');
   const [assistantMode, setAssistantMode] = useState<'chat' | 'code' | 'plan'>('chat');
-  const [enableVoice, setEnableVoice] = useState(false);
+  const [enableVoice] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const toast = useToast();

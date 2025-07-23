@@ -54,6 +54,13 @@ import {
   FiTrash2
 } from 'react-icons/fi';
 
+/*
+  Knowledge Graph Integration Implementation
+  
+  This module implements the Knowledge Graph Integration feature, providing a comprehensive knowledge base of programming concepts, libraries, frameworks, and best practices.
+*/
+import { LLMProvider } from '../types/llm';
+
 interface KnowledgeNode {
   id: string;
   type: 'concept' | 'library' | 'framework' | 'language' | 'pattern' | 'tool' | 'bestPractice';
@@ -704,7 +711,7 @@ app.listen(3000, () => {
             </Box>
 
             <Box>
-              <Heading size="sm" mb={2">Node Types</Heading>
+              <Heading size="sm" mb={2}>Node Types</Heading>
               <VStack spacing={1} align="stretch">
                 {['concept', 'library', 'framework', 'language', 'pattern', 'tool', 'bestPractice'].map(type => {
                   const count = nodes.filter(n => n.type === type).length;

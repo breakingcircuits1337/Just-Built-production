@@ -38,7 +38,7 @@ import {
   AlertIcon,
   AlertDescription
 } from '@chakra-ui/react';
-import { FiPlay, FiEdit, FiPlus, FiTrash2, FiCheck, FiArrowRight, FiSettings, FiCode, FiEye, FiHome, FiMessageSquare, FiGrid, FiShield, FiUsers, FiClock, FiGitBranch, FiImage } from 'react-icons/fi';
+import { FiPlay, FiEdit, FiPlus, FiTrash2, FiCheck, FiArrowRight, FiSettings, FiCode, FiHome, FiMessageSquare, FiGrid, FiShield, FiUsers, FiClock, FiGitBranch, FiImage } from 'react-icons/fi';
 import Editor from '@monaco-editor/react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
@@ -135,7 +135,7 @@ function App() {
   const [advancedSettings, setAdvancedSettings] = useState<any>({});
   
   const { isOpen: isEditStepOpen, onOpen: onEditStepOpen, onClose: onEditStepClose } = useDisclosure();
-  const { isOpen: isSettingsOpen, onOpen: onSettingsOpen, onClose: onSettingsClose } = useDisclosure();
+  const { isOpen: isSettingsOpen, onClose: onSettingsClose } = useDisclosure();
   const { isOpen: isProjectSettingsOpen, onOpen: onProjectSettingsOpen, onClose: onProjectSettingsClose } = useDisclosure();
   
   const [editingStep, setEditingStep] = useState<Step | null>(null);
